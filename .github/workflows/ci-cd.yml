@@ -45,21 +45,29 @@ jobs:
             -t $IMAGE_NAME:${{ env.SHORT_SHA }} \
             -t $IMAGE_NAME:latest .
 
-      - name: Start app for integration test
+      - name: Start app and database for integration test
         run: |
           docker compose up -d --build
+          echo "Containers:"
           docker compose ps
-          echo "Waiting for app to become healthy..."
+          echo "All logs:"
+          docker compose logs --tail=100
+
+      - name: Wait for health endpoint
+        run: |
           for i in {1..30}; do
+            echo "Health check attempt $i"
             if curl -fsS http://localhost:8080/health; then
               echo "App is healthy"
               exit 0
             fi
-            echo "Waiting... attempt $i"
-            docker compose logs app --tail=20
+            echo "Current containers:"
+            docker compose ps
+            echo "App logs:"
+            docker compose logs app --tail=50 || true
             sleep 5
           done
-          echo "App did not become healthy"
+          echo "Final logs:"
           docker compose logs
           exit 1
 
