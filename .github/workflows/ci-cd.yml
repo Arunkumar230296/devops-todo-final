@@ -45,6 +45,29 @@ jobs:
             -t $IMAGE_NAME:${{ env.SHORT_SHA }} \
             -t $IMAGE_NAME:latest .
 
+      - name: Start app for integration test
+        run: |
+          docker compose up -d --build
+          docker compose ps
+          echo "Waiting for app to become healthy..."
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8080/health; then
+              echo "App is healthy"
+              exit 0
+            fi
+            echo "Waiting... attempt $i"
+            docker compose logs app --tail=20
+            sleep 5
+          done
+          echo "App did not become healthy"
+          docker compose logs
+          exit 1
+
+      - name: Run integration test
+        env:
+          APP_URL: http://localhost:8080
+        run: pytest integration_tests/test_health.py -v
+
       - name: Login to GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -53,16 +76,6 @@ jobs:
         run: |
           docker push $IMAGE_NAME:${{ env.SHORT_SHA }}
           docker push $IMAGE_NAME:latest
-
-      - name: Start app for integration test
-        run: |
-          docker compose up -d --build
-          sleep 25
-
-      - name: Run integration test
-        env:
-          APP_URL: http://localhost:8080
-        run: pytest integration_tests/test_health.py -v
 
       - name: Copy bootstrap script to EC2
         uses: appleboy/scp-action@v0.1.7
