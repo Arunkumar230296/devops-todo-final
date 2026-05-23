@@ -32,7 +32,8 @@ def init_db():
 
 @app.before_request
 def before_request():
-    init_db()
+    if request.endpoint not in ["health", "static"]:
+        init_db()
 
 
 @app.route("/")
@@ -81,9 +82,16 @@ def health():
     try:
         conn = get_db_connection()
         conn.close()
-        return jsonify({"status": "healthy"}), 200
+        return jsonify({
+            "status": "healthy",
+            "database": "connected"
+        }), 200
     except Exception as error:
-        return jsonify({"status": "unhealthy", "error": str(error)}), 500
+        return jsonify({
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(error)
+        }), 500
 
 
 if __name__ == "__main__":
