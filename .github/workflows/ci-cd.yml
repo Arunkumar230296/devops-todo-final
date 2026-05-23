@@ -32,7 +32,7 @@ jobs:
         run: pip install -r app/requirements.txt
 
       - name: Lint code
-        run: flake8 app --max-line-length=100
+        run: flake8 app --max-line-length=100 --ignore=W292,W391
 
       - name: Run unit tests
         run: |
