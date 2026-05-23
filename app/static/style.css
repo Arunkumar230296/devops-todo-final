@@ -1,0 +1,116 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #101828, #1d2939);
+    min-height: 100vh;
+    color: #101828;
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+.card {
+    width: 100%;
+    max-width: 560px;
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+}
+
+.badge {
+    display: inline-block;
+    background: #eef4ff;
+    color: #3538cd;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+h1 {
+    margin: 18px 0 8px;
+    font-size: 42px;
+}
+
+.subtitle {
+    color: #667085;
+    margin-bottom: 24px;
+}
+
+.todo-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.todo-form input {
+    flex: 1;
+    padding: 14px 16px;
+    border: 1px solid #d0d5dd;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.todo-form button {
+    border: none;
+    background: #3538cd;
+    color: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f9fafb;
+    border: 1px solid #eaecf0;
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 10px;
+}
+
+.check {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: #eef4ff;
+    color: #3538cd;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.completed {
+    text-decoration: line-through;
+    color: #98a2b3;
+}
+
+.empty {
+    color: #667085;
+    text-align: center;
+    padding: 20px;
+}
+
+.health {
+    margin-top: 24px;
+    font-size: 14px;
+    color: #667085;
+}
+
+.health a {
+    color: #3538cd;
+    font-weight: 700;
+}

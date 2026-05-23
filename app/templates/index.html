@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevOps Todo App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <section class="card">
+            <p class="badge">DevOps Take-Home Assignment</p>
+            <h1>Todo App</h1>
+            <p class="subtitle">Flask + PostgreSQL + Docker + CI/CD</p>
+
+            <form method="POST" action="/add" class="todo-form">
+                <input type="text" name="title" placeholder="Add a new task..." required>
+                <button type="submit">Add</button>
+            </form>
+
+            <div class="todo-list">
+                {% if todos %}
+                    {% for todo in todos %}
+                        <form method="POST" action="/toggle/{{ todo.id }}" class="todo-item">
+                            <button class="check" type="submit">
+                                {% if todo.completed %}✓{% else %}○{% endif %}
+                            </button>
+                            <span class="{% if todo.completed %}completed{% endif %}">
+                                {{ todo.title }}
+                            </span>
+                        </form>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty">No todos yet. Add your first task.</p>
+                {% endif %}
+            </div>
+
+            <p class="health">Health endpoint: <a href="/health">/health</a></p>
+        </section>
+    </main>
+</body>
+</html>

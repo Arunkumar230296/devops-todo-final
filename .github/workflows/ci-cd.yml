@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: ghcr.io/arunkumar230296/devops-todo-final
+
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r app/requirements.txt
+
+      - name: Lint code
+        run: flake8 app --max-line-length=100
+
+      - name: Run unit tests
+        run: |
+          cd app
+          pytest test_app.py -v
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $IMAGE_NAME:${{ env.SHORT_SHA }} \
+            -t $IMAGE_NAME:latest .
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:${{ env.SHORT_SHA }}
+          docker push $IMAGE_NAME:latest
+
+      - name: Start app for integration test
+        run: |
+          docker compose up -d --build
+          sleep 25
+
+      - name: Run integration test
+        env:
+          APP_URL: http://localhost:8080
+        run: pytest integration_tests/test_health.py -v
+
+      - name: Copy bootstrap script to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "bootstrap.sh"
+          target: "/home/${{ secrets.EC2_USER }}/devops-todo-final"
+
+      - name: Deploy on EC2 using bootstrap.sh
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_NAME: ghcr.io/arunkumar230296/devops-todo-final:latest
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE_NAME,DATABASE_URL
+          script: |
+            cd /home/${{ secrets.EC2_USER }}/devops-todo-final
+            chmod +x bootstrap.sh
+            ./bootstrap.sh
+
+      - name: Post-deploy health check
+        run: |
+          curl -fsS http://${{ secrets.EC2_HOST }}:8080/health
