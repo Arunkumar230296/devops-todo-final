@@ -14,3 +14,4 @@ def test_home_route_exists():
     response = client.get("/")
 
     assert response.status_code in [200, 500]
+    
